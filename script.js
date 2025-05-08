@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formSections = document.querySelectorAll('.form-section');
     const statusMessageDiv = document.getElementById('statusMessage');
 
-    // Agência Form
+    // Agência Form & List & Search
     const agenciaForm = document.getElementById('cadastroAgenciaForm');
     const agenciaEditingKeyInput = document.getElementById('agenciaEditingKey');
     const agenciaNomeInput = document.getElementById('agenciaNome');
@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const agenciaAtivosInput = document.getElementById('agenciaAtivos');
     const agenciaListDiv = document.getElementById('agenciaList');
     const limparAgenciaFormBtn = document.getElementById('limparAgenciaForm');
+    const agenciaSearchInput = document.getElementById('agenciaSearchInput');
+    const agenciaSearchBtn = document.getElementById('agenciaSearchBtn');
 
-    // Cliente Form
+    // Cliente Form & List & Search
     const clienteForm = document.getElementById('cadastroClienteForm');
     const clienteEditingKeyInput = document.getElementById('clienteEditingKey');
     const clienteNomeInput = document.getElementById('clienteNome');
@@ -21,8 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const clienteCidadeInput = document.getElementById('clienteCidade');
     const clienteListDiv = document.getElementById('clienteList');
     const limparClienteFormBtn = document.getElementById('limparClienteForm');
+    const clienteSearchInput = document.getElementById('clienteSearchInput');
+    const clienteSearchBtn = document.getElementById('clienteSearchBtn');
 
-    // Conta Form
+    // Conta Form & List & Search
     const contaForm = document.getElementById('cadastroContaForm');
     const contaEditingKeyInput = document.getElementById('contaEditingKey');
     const contaAgenciaNomeSelect = document.getElementById('contaAgenciaNome');
@@ -31,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const contaSaldoInput = document.getElementById('contaSaldo');
     const contaListDiv = document.getElementById('contaList');
     const limparContaFormBtn = document.getElementById('limparContaForm');
+    const contaSearchInput = document.getElementById('contaSearchInput');
+    const contaSearchBtn = document.getElementById('contaSearchBtn');
 
     // Footer year
     const currentYearSpan = document.getElementById('currentYear');
@@ -39,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- LocalStorage Keys ---
-    const AGENCIA_KEY = 'banco_agencias_v2'; // Changed key to avoid conflicts with old data if any
+    const AGENCIA_KEY = 'banco_agencias_v2';
     const CLIENTE_KEY = 'banco_clientes_v2';
     const CONTA_KEY = 'banco_contas_v2';
 
@@ -57,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessageDiv.classList.remove('show');
         }, duration);
     };
-    
+
     const toggleButtonLoading = (button, isLoading) => {
         if (!button) return;
         if (isLoading) {
@@ -73,22 +79,28 @@ document.addEventListener('DOMContentLoaded', () => {
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const currentActiveTabBtn = document.querySelector('.tab-btn.active');
-            if (currentActiveTabBtn === tab) return; // Do nothing if already active
+            if (currentActiveTabBtn === tab) return;
 
             tabs.forEach(t => t.classList.remove('active'));
             formSections.forEach(s => s.classList.remove('active'));
-            
+
             tab.classList.add('active');
             const targetFormId = `form${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`;
             document.getElementById(targetFormId).classList.add('active');
-            
-            clearAllFormsAndEditingKeys(); 
-            
-            if (tab.dataset.tab === 'conta') {
+
+            clearAllFormsAndEditingKeysAndSearch(); // Clears forms and search fields
+
+            const activeTabDataset = tab.dataset.tab;
+            if (activeTabDataset === 'agencia') {
+                renderAgencias();
+            } else if (activeTabDataset === 'cliente') {
+                renderClientes();
+            } else if (activeTabDataset === 'conta') {
                 populateAgenciaDropdown();
                 populateClienteDropdown();
+                renderContas();
             }
-            // Focus first input in new active tab
+
             const firstInput = document.getElementById(targetFormId).querySelector('input:not([type="hidden"]), select');
             if (firstInput) {
                 firstInput.focus();
@@ -96,29 +108,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const clearAllFormsAndEditingKeys = () => {
+    const clearAllFormsAndEditingKeysAndSearch = () => {
         agenciaForm.reset();
         agenciaEditingKeyInput.value = '';
         agenciaNomeInput.disabled = false;
+        agenciaSearchInput.value = '';
 
         clienteForm.reset();
         clienteEditingKeyInput.value = '';
         clienteNomeInput.disabled = false;
+        clienteSearchInput.value = '';
 
         contaForm.reset();
         contaEditingKeyInput.value = '';
         contaNumeroInput.disabled = false;
-        
         contaAgenciaNomeSelect.value = '';
         contaClienteNomeSelect.value = '';
+        contaSearchInput.value = '';
     };
 
-    // --- Agência CRUD ---
+    // --- Agência CRUD & Search ---
     const renderAgencias = () => {
         const agencias = getItems(AGENCIA_KEY);
+        const searchTerm = agenciaSearchInput.value.toLowerCase().trim();
+        const filteredAgencias = searchTerm
+            ? agencias.filter(ag =>
+                ag.nome.toLowerCase().includes(searchTerm) ||
+                (ag.cidade && ag.cidade.toLowerCase().includes(searchTerm))
+              )
+            : agencias;
+
         agenciaListDiv.innerHTML = '';
-        if (agencias.length === 0) {
-            agenciaListDiv.innerHTML = '<p class="data-list-empty">Nenhuma agência cadastrada.</p>';
+        if (filteredAgencias.length === 0) {
+            agenciaListDiv.innerHTML = `<p class="data-list-empty">${searchTerm ? 'Nenhuma agência encontrada para "' + agenciaSearchInput.value + '".' : 'Nenhuma agência cadastrada.'}</p>`;
             return;
         }
         const table = document.createElement('table');
@@ -132,12 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             </thead>
             <tbody>
-                ${agencias.map(ag => `
+                ${filteredAgencias.map(ag => `
                     <tr>
-                        <td data-label="Nome">${ag.nome}</td>
+                        <td data-label="Nome Agência">${ag.nome}</td>
                         <td data-label="Cidade">${ag.cidade || '-'}</td>
                         <td data-label="Ativos (R$)">${ag.ativos ? parseFloat(ag.ativos).toFixed(2) : '-'}</td>
-                        <td class="actions">
+                        <td class="actions" data-label="Ações">
                             <button class="btn btn-warning btn-sm btn-edit" data-key="${encodeURIComponent(ag.nome)}" data-entity="agencia" title="Editar"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger btn-sm btn-delete" data-key="${encodeURIComponent(ag.nome)}" data-entity="agencia" title="Excluir"><i class="fas fa-trash"></i></button>
                         </td>
@@ -163,9 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = e.submitter;
         toggleButtonLoading(button, true);
 
-        setTimeout(() => { // Simulate async
+        setTimeout(() => {
             let agencias = getItems(AGENCIA_KEY);
-            if (editingKey) { 
+            if (editingKey) {
                 const index = agencias.findIndex(ag => ag.nome === editingKey);
                 if (index !== -1) {
                     if (nome !== editingKey && agencias.some(ag => ag.nome === nome)) {
@@ -179,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (c.agenciaNome === editingKey) c.agenciaNome = nome;
                         });
                         saveItems(CONTA_KEY, contas);
-                        if (document.querySelector('.tab-btn[data-tab="conta"].active')) renderContas(); // Refresh if visible
+                        if (document.querySelector('.tab-btn[data-tab="conta"].active')) renderContas();
                     }
                     agencias[index] = { nome, cidade, ativos: ativos || "0" };
                     saveItems(AGENCIA_KEY, agencias);
@@ -187,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                      showStatusMessage('Erro: Agência original não encontrada para alteração.', 'danger');
                 }
-            } else { 
+            } else {
                 if (agencias.some(ag => ag.nome === nome)) {
                     showStatusMessage('Já existe uma agência com este nome.', 'danger');
                     toggleButtonLoading(button, false);
@@ -200,16 +222,19 @@ document.addEventListener('DOMContentLoaded', () => {
             agenciaForm.reset();
             agenciaEditingKeyInput.value = '';
             agenciaNomeInput.disabled = false;
+            agenciaSearchInput.value = ''; // Clear search on save
             renderAgencias();
-            populateAgenciaDropdown(); 
+            populateAgenciaDropdown();
             toggleButtonLoading(button, false);
-        }, 300); // simulate delay
+        }, 300);
     });
-    
+
     limparAgenciaFormBtn.addEventListener('click', () => {
         agenciaForm.reset();
         agenciaEditingKeyInput.value = '';
         agenciaNomeInput.disabled = false;
+        agenciaSearchInput.value = '';
+        renderAgencias();
         showStatusMessage('Formulário da agência limpo.', 'info');
         agenciaNomeInput.focus();
     });
@@ -221,18 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (agencia) {
             const targetTabButton = document.querySelector('.tab-btn[data-tab="agencia"]');
             if (!targetTabButton.classList.contains('active')) {
-                targetTabButton.click(); 
+                targetTabButton.click(); // This will clear search and render
             } else {
-                 // If already on the tab, manually clear form before populating for edit
                 agenciaForm.reset();
                 agenciaEditingKeyInput.value = '';
+                agenciaSearchInput.value = '';
+                renderAgencias(); // Refresh list without search term
             }
-            
+
             agenciaNomeInput.value = agencia.nome;
             agenciaCidadeInput.value = agencia.cidade || '';
             agenciaAtivosInput.value = agencia.ativos || '';
             agenciaEditingKeyInput.value = encodeURIComponent(agencia.nome);
-            // agenciaNomeInput.disabled = true; // Optionally disable editing primary key
             showStatusMessage(`Editando agência: ${agencia.nome}.`, 'info');
             agenciaNomeInput.focus();
         }
@@ -249,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let agencias = getItems(AGENCIA_KEY);
             agencias = agencias.filter(ag => ag.nome !== nomeKey);
             saveItems(AGENCIA_KEY, agencias);
-            renderAgencias();
+            renderAgencias(); // Will use current search term or show all if empty
             populateAgenciaDropdown();
             showStatusMessage('Agência excluída com sucesso!', 'success');
             if (decodeURIComponent(agenciaEditingKeyInput.value || '') === nomeKey) {
@@ -260,12 +285,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- Cliente CRUD (similar structure to Agência) ---
+    // --- Cliente CRUD & Search ---
     const renderClientes = () => {
         const clientes = getItems(CLIENTE_KEY);
+        const searchTerm = clienteSearchInput.value.toLowerCase().trim();
+        const filteredClientes = searchTerm
+            ? clientes.filter(cl =>
+                cl.nome.toLowerCase().includes(searchTerm) ||
+                (cl.endereco && cl.endereco.toLowerCase().includes(searchTerm)) ||
+                (cl.cidade && cl.cidade.toLowerCase().includes(searchTerm))
+              )
+            : clientes;
+
         clienteListDiv.innerHTML = '';
-         if (clientes.length === 0) {
-            clienteListDiv.innerHTML = '<p class="data-list-empty">Nenhum cliente cadastrado.</p>';
+        if (filteredClientes.length === 0) {
+            clienteListDiv.innerHTML = `<p class="data-list-empty">${searchTerm ? 'Nenhum cliente encontrado para "' + clienteSearchInput.value + '".' : 'Nenhum cliente cadastrado.'}</p>`;
             return;
         }
         const table = document.createElement('table');
@@ -279,12 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             </thead>
             <tbody>
-                ${clientes.map(cl => `
+                ${filteredClientes.map(cl => `
                     <tr>
-                        <td data-label="Nome">${cl.nome}</td>
+                        <td data-label="Nome Cliente">${cl.nome}</td>
                         <td data-label="Endereço">${cl.endereco || '-'}</td>
                         <td data-label="Cidade">${cl.cidade || '-'}</td>
-                        <td class="actions">
+                        <td class="actions" data-label="Ações">
                             <button class="btn btn-warning btn-sm btn-edit" data-key="${encodeURIComponent(cl.nome)}" data-entity="cliente" title="Editar"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger btn-sm btn-delete" data-key="${encodeURIComponent(cl.nome)}" data-entity="cliente" title="Excluir"><i class="fas fa-trash"></i></button>
                         </td>
@@ -306,13 +340,13 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatusMessage('Nome do cliente é obrigatório.', 'danger');
             return;
         }
-        
+
         const button = e.submitter;
         toggleButtonLoading(button, true);
 
-        setTimeout(() => { // Simulate async
+        setTimeout(() => {
             let clientes = getItems(CLIENTE_KEY);
-            if (editingKey) { 
+            if (editingKey) {
                 const index = clientes.findIndex(cl => cl.nome === editingKey);
                 if (index !== -1) {
                     if (nome !== editingKey && clientes.some(cl => cl.nome === nome)) {
@@ -334,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                      showStatusMessage('Erro: Cliente original não encontrado para alteração.', 'danger');
                 }
-            } else { 
+            } else {
                 if (clientes.some(cl => cl.nome === nome)) {
                     showStatusMessage('Já existe um cliente com este nome.', 'danger');
                     toggleButtonLoading(button, false);
@@ -347,8 +381,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clienteForm.reset();
             clienteEditingKeyInput.value = '';
             clienteNomeInput.disabled = false;
+            clienteSearchInput.value = ''; // Clear search
             renderClientes();
-            populateClienteDropdown(); 
+            populateClienteDropdown();
             toggleButtonLoading(button, false);
         }, 300);
     });
@@ -357,6 +392,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clienteForm.reset();
         clienteEditingKeyInput.value = '';
         clienteNomeInput.disabled = false;
+        clienteSearchInput.value = '';
+        renderClientes();
         showStatusMessage('Formulário do cliente limpo.', 'info');
         clienteNomeInput.focus();
     });
@@ -372,8 +409,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 clienteForm.reset();
                 clienteEditingKeyInput.value = '';
+                clienteSearchInput.value = '';
+                renderClientes();
             }
-            
+
             clienteNomeInput.value = cliente.nome;
             clienteEnderecoInput.value = cliente.endereco || '';
             clienteCidadeInput.value = cliente.cidade || '';
@@ -395,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clientes = clientes.filter(cl => cl.nome !== nomeKey);
             saveItems(CLIENTE_KEY, clientes);
             renderClientes();
-            populateClienteDropdown(); 
+            populateClienteDropdown();
             showStatusMessage('Cliente excluído com sucesso!', 'success');
             if (decodeURIComponent(clienteEditingKeyInput.value || '') === nomeKey) {
                 clienteForm.reset();
@@ -405,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- Conta CRUD ---
+    // --- Conta CRUD & Search ---
     const populateAgenciaDropdown = () => {
         const agencias = getItems(AGENCIA_KEY);
         const currentVal = contaAgenciaNomeSelect.value;
@@ -416,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = ag.nome;
             contaAgenciaNomeSelect.appendChild(option);
         });
-        if (agencias.some(ag => ag.nome === currentVal)) { // Preserve selection if possible
+        if (agencias.some(ag => ag.nome === currentVal)) {
             contaAgenciaNomeSelect.value = currentVal;
         }
     };
@@ -431,16 +470,25 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = cl.nome;
             contaClienteNomeSelect.appendChild(option);
         });
-         if (clientes.some(cl => cl.nome === currentVal)) { // Preserve selection
+         if (clientes.some(cl => cl.nome === currentVal)) {
             contaClienteNomeSelect.value = currentVal;
         }
     };
 
     const renderContas = () => {
         const contas = getItems(CONTA_KEY);
+        const searchTerm = contaSearchInput.value.toLowerCase().trim();
+        const filteredContas = searchTerm
+            ? contas.filter(c =>
+                c.numero.toLowerCase().includes(searchTerm) ||
+                c.agenciaNome.toLowerCase().includes(searchTerm) ||
+                c.clienteNome.toLowerCase().includes(searchTerm)
+              )
+            : contas;
+
         contaListDiv.innerHTML = '';
-        if (contas.length === 0) {
-            contaListDiv.innerHTML = '<p class="data-list-empty">Nenhuma conta cadastrada.</p>';
+        if (filteredContas.length === 0) {
+            contaListDiv.innerHTML = `<p class="data-list-empty">${searchTerm ? 'Nenhuma conta encontrada para "' + contaSearchInput.value + '".' : 'Nenhuma conta cadastrada.'}</p>`;
             return;
         }
         const table = document.createElement('table');
@@ -455,13 +503,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             </thead>
             <tbody>
-                ${contas.map(c => `
+                ${filteredContas.map(c => `
                     <tr>
                         <td data-label="Nº Conta">${c.numero}</td>
                         <td data-label="Agência">${c.agenciaNome}</td>
                         <td data-label="Cliente">${c.clienteNome}</td>
                         <td data-label="Saldo (R$)">${parseFloat(c.saldo).toFixed(2)}</td>
-                        <td class="actions">
+                        <td class="actions" data-label="Ações">
                             <button class="btn btn-warning btn-sm btn-edit" data-key="${encodeURIComponent(c.numero)}" data-entity="conta" title="Editar"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger btn-sm btn-delete" data-key="${encodeURIComponent(c.numero)}" data-entity="conta" title="Excluir"><i class="fas fa-trash"></i></button>
                         </td>
@@ -488,9 +536,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = e.submitter;
         toggleButtonLoading(button, true);
 
-        setTimeout(() => { // Simulate async
+        setTimeout(() => {
             let contas = getItems(CONTA_KEY);
-            if (editingKey) { 
+            if (editingKey) {
                 const index = contas.findIndex(c => c.numero === editingKey);
                 if (index !== -1) {
                      if (numero !== editingKey && contas.some(c => c.numero === numero)) {
@@ -504,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     showStatusMessage('Erro: Conta original não encontrada para alteração.', 'danger');
                 }
-            } else { 
+            } else {
                 if (contas.some(c => c.numero === numero)) {
                     showStatusMessage('Já existe uma conta com este número.', 'danger');
                     toggleButtonLoading(button, false);
@@ -517,19 +565,22 @@ document.addEventListener('DOMContentLoaded', () => {
             contaForm.reset();
             contaEditingKeyInput.value = '';
             contaNumeroInput.disabled = false;
-            contaAgenciaNomeSelect.value = ''; 
-            contaClienteNomeSelect.value = ''; 
+            contaAgenciaNomeSelect.value = '';
+            contaClienteNomeSelect.value = '';
+            contaSearchInput.value = ''; // Clear search
             renderContas();
             toggleButtonLoading(button, false);
         }, 300);
     });
-    
+
     limparContaFormBtn.addEventListener('click', () => {
         contaForm.reset();
         contaEditingKeyInput.value = '';
         contaNumeroInput.disabled = false;
         contaAgenciaNomeSelect.value = '';
         contaClienteNomeSelect.value = '';
+        contaSearchInput.value = '';
+        renderContas();
         showStatusMessage('Formulário da conta limpo.', 'info');
         contaAgenciaNomeSelect.focus();
     });
@@ -543,13 +594,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!targetTabButton.classList.contains('active')) {
                 targetTabButton.click();
             } else {
-                 contaForm.reset(); // Clear form if already on tab
+                 contaForm.reset();
                  contaEditingKeyInput.value = '';
+                 contaSearchInput.value = '';
+                 // Dropdowns will be repopulated, then list rendered
             }
-            
-            // Ensure dropdowns are populated before setting values
-            populateAgenciaDropdown(); 
+
+            populateAgenciaDropdown();
             populateClienteDropdown();
+            renderContas(); // Ensure list is up-to-date before setting form values
 
             contaAgenciaNomeSelect.value = conta.agenciaNome;
             contaClienteNomeSelect.value = conta.clienteNome;
@@ -557,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contaSaldoInput.value = conta.saldo;
             contaEditingKeyInput.value = encodeURIComponent(conta.numero);
             showStatusMessage(`Editando conta: ${conta.numero}.`, 'info');
-            contaNumeroInput.focus();
+            contaNumeroInput.focus(); // Focus after dropdowns are set
         }
     };
 
@@ -585,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const button = e.target.closest('button[data-key]');
                 if (!button) return;
 
-                const key = button.dataset.key; // Already URI encoded from render function
+                const key = button.dataset.key;
                 const entity = button.dataset.entity;
 
                 if (button.classList.contains('btn-edit')) {
@@ -601,34 +654,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Search Event Listeners ---
+    function setupSearchListeners() {
+        agenciaSearchBtn.addEventListener('click', renderAgencias);
+        agenciaSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') renderAgencias(); });
+
+        clienteSearchBtn.addEventListener('click', renderClientes);
+        clienteSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') renderClientes(); });
+
+        contaSearchBtn.addEventListener('click', renderContas);
+        contaSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') renderContas(); });
+    }
+
     // --- Initial Load ---
     const init = () => {
+        // Initial renders will use empty search fields by default
         renderAgencias();
         renderClientes();
         renderContas();
-        
-        populateAgenciaDropdown(); // Initial population for conta form
-        populateClienteDropdown();
-        
-        setupActionListeners(); // Setup delegated event listeners for actions
 
-        // Activate the first tab by default if none is active (e.g. on first load)
+        populateAgenciaDropdown();
+        populateClienteDropdown();
+
+        setupActionListeners();
+        setupSearchListeners();
+
         const activeTab = document.querySelector('.tab-btn.active');
-        if (!activeTab) {
-             document.querySelector('.tab-btn[data-tab="agencia"]').click();
+        if (!activeTab) { // Should be set by HTML 'active' class on first tab
+             const firstTab = document.querySelector('.tab-btn');
+             if(firstTab) firstTab.click();
         } else {
-            // If a tab is already active (e.g. from browser cache), ensure its content is focused
-            const targetFormId = `form${activeTab.dataset.tab.charAt(0).toUpperCase() + activeTab.dataset.tab.slice(1)}`;
+            // If a tab is already active (e.g. from HTML or browser cache), ensure its content is correctly displayed
+            // and search field is initially clear
+            const currentTabDataset = activeTab.dataset.tab;
+            if (currentTabDataset === 'agencia') {
+                agenciaSearchInput.value = ''; renderAgencias();
+            } else if (currentTabDataset === 'cliente') {
+                clienteSearchInput.value = ''; renderClientes();
+            } else if (currentTabDataset === 'conta') {
+                contaSearchInput.value = ''; renderContas(); // Dropdowns populated above
+            }
+
+            const targetFormId = `form${currentTabDataset.charAt(0).toUpperCase() + currentTabDataset.slice(1)}`;
             const firstInput = document.getElementById(targetFormId).querySelector('input:not([type="hidden"]), select');
             if (firstInput) {
                 firstInput.focus();
             }
-            if (activeTab.dataset.tab === 'conta') { // Ensure dropdowns are fresh if conta is active
-                populateAgenciaDropdown();
-                populateClienteDropdown();
-            }
         }
-
     };
 
     init();

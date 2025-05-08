@@ -13,11 +13,11 @@
     --secondary-lightness: 25%;
     --secondary: hsl(var(--secondary-hue), var(--secondary-saturation), var(--secondary-lightness));
     --secondary-dark: hsl(var(--secondary-hue), var(--secondary-saturation), calc(var(--secondary-lightness) - 5%));
-    
+
     --success: #2ecc71;
     --warning: #f39c12;
     --danger: #e74c3c;
-    
+
     --light-gray: #ecf0f1;
     --medium-gray: #dce1e4;
     --dark-gray: #7f8c9a;
@@ -29,7 +29,7 @@
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
     --border-radius-lg: 12px;
-    
+
     --shadow-color: hsl(var(--primary-hue), 30%, 70%);
     --box-shadow-light: 0 2px 5px rgba(0,0,0,0.05);
     --box-shadow-md: 0 4px 12px rgba(0,0,0,0.1);
@@ -255,14 +255,14 @@ select.form-control {
 .btn-danger { background: var(--danger); color: var(--white); }
 .btn-danger:hover { background: hsl(4, 79%, 55%); } /* Darken danger */
 
-.btn-light { 
-    background-color: var(--light-gray); 
-    color: var(--text-color-light); 
+.btn-light {
+    background-color: var(--light-gray);
+    color: var(--text-color-light);
     border: 1px solid var(--medium-gray);
     box-shadow: none;
 }
-.btn-light:hover { 
-    background-color: var(--medium-gray); 
+.btn-light:hover {
+    background-color: var(--medium-gray);
     border-color: var(--dark-gray);
     color: var(--text-color);
     box-shadow: none;
@@ -274,7 +274,7 @@ select.form-control {
     padding: 1rem 1.5rem;
     border-radius: var(--border-radius-md);
     margin: 0 0 1.5rem 0; /* Adjusted margin */
-    display: none; 
+    display: none;
     opacity: 0;
     transition: opacity 0.3s ease, transform 0.3s ease;
     border-width: 1px;
@@ -328,9 +328,9 @@ select.form-control {
 
 .loading {
     position: relative;
-    color: transparent !important; 
+    color: transparent !important;
 }
-.loading i { 
+.loading i {
     opacity: 0;
 }
 .loading::before { /* Spinner */
@@ -405,7 +405,7 @@ select.form-control {
 
 .data-list .actions button {
     margin-right: 0.5rem;
-    padding: 0.4rem 0.7rem; 
+    padding: 0.4rem 0.7rem;
     font-size: 0.85rem;
     min-width: auto;
     box-shadow: none;
@@ -439,6 +439,21 @@ select.form-control {
     border-top: 1px solid var(--medium-gray);
 }
 
+.search-container { /* Added based on your prompt */
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.5rem; /* Consistent with form-group margin */
+    align-items: center;
+}
+.search-container input.form-control {
+    flex-grow: 1;
+    margin-bottom: 0; /* Override form-group margin if input is directly in search-container */
+}
+.search-container .btn {
+    min-width: 120px; /* Adjusted for "Pesquisar" text */
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
 
 @media (max-width: 768px) {
     .container {
@@ -456,7 +471,7 @@ select.form-control {
     .btn {
         width: 100%;
     }
-    
+
     .tabs {
         flex-direction: column;
     }
@@ -474,8 +489,8 @@ select.form-control {
          border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
          border-top: 1px solid var(--medium-gray); /* Ensure border consistency */
     }
-    .tab-btn.active + .form-section {
-        border-top: 1px solid var(--medium-gray); /* Might need specific selector if order changes */
+    .tab-btn.active + .form-section { /* This selector might be too fragile if HTML order changes */
+        border-top: 1px solid var(--medium-gray);
     }
      .data-list table, .data-list thead, .data-list tbody, .data-list th, .data-list td, .data-list tr {
         display: block;
@@ -510,11 +525,7 @@ select.form-control {
         transform: translateY(-50%);
         color: var(--primary-dark);
     }
-    .data-list td:nth-of-type(1):before { content: "Nome:"; }
-    .data-list td:nth-of-type(2):before { content: "Cidade/Endereço/Cliente:"; } /* Generic second column */
-    .data-list td:nth-of-type(3):before { content: "Ativos/Cidade/Agência:"; } /* Generic third column */
-    .data-list td:nth-of-type(4):before { content: "Saldo/Ações:"; } /* Generic fourth column */
-    /* Specific overrides if needed for each table type */
+    /* Specific overrides for data labels based on your CSS */
     #agenciaList td:nth-of-type(1):before { content: "Nome Agência:"; }
     #agenciaList td:nth-of-type(2):before { content: "Cidade:"; }
     #agenciaList td:nth-of-type(3):before { content: "Ativos (R$):"; }
@@ -524,21 +535,34 @@ select.form-control {
     #clienteList td:nth-of-type(2):before { content: "Endereço:"; }
     #clienteList td:nth-of-type(3):before { content: "Cidade:"; }
     #clienteList td:nth-of-type(4):before { content: "Ações:"; }
-    
+
     #contaList td:nth-of-type(1):before { content: "Nº Conta:"; }
     #contaList td:nth-of-type(2):before { content: "Agência:"; }
     #contaList td:nth-of-type(3):before { content: "Cliente:"; }
     #contaList td:nth-of-type(4):before { content: "Saldo (R$):"; }
-    #contaList td:nth-of-type(5):before { content: "Ações:"; } /* Conta has 5 columns with actions */
+    #contaList td:nth-of-type(5):before { content: "Ações:"; }
 
-    .data-list td.actions, .data-list td:last-child { /* Ensure actions are displayed correctly */
-        padding-left: 0.75rem; /* Reset padding for actions column on mobile */
-        text-align: left; /* Align action buttons */
+    .data-list td.actions,
+    .data-list td[data-label="Ações"] /* More robust selector for actions column */
+    {
+        padding-left: 0.75rem;
+        text-align: left;
     }
-    .data-list td.actions:before, .data-list td:last-child:before {
-        display: none; /* No label for actions column itself */
+    .data-list td.actions:before,
+    .data-list td[data-label="Ações"]:before
+    {
+        display: none;
     }
     .data-list .actions button {
-        margin-bottom: 0.25rem; /* Stack action buttons */
+        margin-bottom: 0.25rem;
+    }
+
+    .search-container { /* Ensure search container is responsive */
+        flex-direction: column;
+        gap: 0.75rem; /* Gap between input and button when stacked */
+    }
+    .search-container input.form-control,
+    .search-container .btn {
+        width: 100%; /* Full width for stacked elements */
     }
 }
