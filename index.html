@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro Bancário Moderno</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-university"></i> Sistema de Cadastro Bancário</h1>
+            </div>
+            <div class="card-body">
+                <div id="statusMessage" class="alert" role="alert"></div>
+
+                <div class="tab-container">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="agencia">
+                            <i class="fas fa-building"></i> Agência
+                        </button>
+                        <button class="tab-btn" data-tab="cliente">
+                            <i class="fas fa-user"></i> Cliente
+                        </button>
+                        <button class="tab-btn" data-tab="conta">
+                            <i class="fas fa-credit-card"></i> Conta
+                        </button>
+                    </div>
+
+                    <div id="formAgencia" class="form-section active">
+                        <h2><i class="fas fa-building"></i> Gestão de Agência</h2>
+                        <form id="cadastroAgenciaForm">
+                            <input type="hidden" id="agenciaEditingKey" class="hidden-id">
+                            <div class="form-group">
+                                <label for="agenciaNome" class="form-label required">Nome da Agência</label>
+                                <input type="text" id="agenciaNome" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="agenciaCidade" class="form-label">Cidade da Agência</label>
+                                <input type="text" id="agenciaCidade" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="agenciaAtivos" class="form-label">Ativos (R$)</label>
+                                <input type="number" id="agenciaAtivos" class="form-control" step="0.01" min="0">
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary" id="salvarAgencia">
+                                    <i class="fas fa-save"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-light" id="limparAgenciaForm">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+                        </form>
+                        <div class="data-list-container">
+                            <h3><i class="fas fa-list"></i> Agências Cadastradas</h3>
+                            <div class="search-container">
+                                <input type="text" id="agenciaSearchInput" class="form-control" placeholder="Pesquisar por Nome ou Cidade...">
+                                <button type="button" class="btn btn-secondary" id="agenciaSearchBtn"><i class="fas fa-search"></i> Pesquisar</button>
+                            </div>
+                            <div id="agenciaList" class="data-list"></div>
+                        </div>
+                    </div>
+
+                    <div id="formCliente" class="form-section">
+                        <h2><i class="fas fa-user"></i> Gestão de Cliente</h2>
+                        <form id="cadastroClienteForm">
+                            <input type="hidden" id="clienteEditingKey" class="hidden-id">
+                            <div class="form-group">
+                                <label for="clienteNome" class="form-label required">Nome do Cliente</label>
+                                <input type="text" id="clienteNome" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clienteEndereco" class="form-label">Endereço do Cliente</label>
+                                <input type="text" id="clienteEndereco" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="clienteCidade" class="form-label">Cidade do Cliente</label>
+                                <input type="text" id="clienteCidade" class="form-control">
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary" id="salvarCliente">
+                                    <i class="fas fa-save"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-light" id="limparClienteForm">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+                        </form>
+                        <div class="data-list-container">
+                            <h3><i class="fas fa-list"></i> Clientes Cadastrados</h3>
+                            <div class="search-container">
+                                <input type="text" id="clienteSearchInput" class="form-control" placeholder="Pesquisar por Nome, Endereço ou Cidade...">
+                                <button type="button" class="btn btn-secondary" id="clienteSearchBtn"><i class="fas fa-search"></i> Pesquisar</button>
+                            </div>
+                            <div id="clienteList" class="data-list"></div>
+                        </div>
+                    </div>
+
+                    <div id="formConta" class="form-section">
+                        <h2><i class="fas fa-credit-card"></i> Gestão de Conta</h2>
+                        <form id="cadastroContaForm">
+                            <input type="hidden" id="contaEditingKey" class="hidden-id">
+                            <div class="form-group">
+                                <label for="contaAgenciaNome" class="form-label required">Nome da Agência</label>
+                                <select id="contaAgenciaNome" class="form-control" required>
+                                    <option value="">Selecione uma agência</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="contaClienteNome" class="form-label required">Nome do Cliente</label>
+                                <select id="contaClienteNome" class="form-control" required>
+                                     <option value="">Selecione um cliente</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="contaNumero" class="form-label required">Número da Conta</label>
+                                <input type="text" id="contaNumero" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contaSaldo" class="form-label">Saldo (R$)</label>
+                                <input type="number" id="contaSaldo" class="form-control" step="0.01" value="0">
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary" id="salvarConta">
+                                    <i class="fas fa-save"></i> Salvar
+                                </button>
+                                 <button type="button" class="btn btn-light" id="limparContaForm">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+                        </form>
+                        <div class="data-list-container">
+                            <h3><i class="fas fa-list"></i> Contas Cadastradas</h3>
+                            <div class="search-container">
+                                <input type="text" id="contaSearchInput" class="form-control" placeholder="Pesquisar por Nº Conta, Agência ou Cliente...">
+                                <button type="button" class="btn btn-secondary" id="contaSearchBtn"><i class="fas fa-search"></i> Pesquisar</button>
+                            </div>
+                            <div id="contaList" class="data-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="app-footer">
+            <p>© <span id="currentYear"></span> Sistema de Cadastro Bancário. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
